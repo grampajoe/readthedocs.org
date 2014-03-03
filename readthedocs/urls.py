@@ -4,6 +4,7 @@ from django.conf import settings
 from django.views.generic.simple import direct_to_template
 
 from tastypie.api import Api
+import registration.views
 
 from api.base import (ProjectResource, UserResource, BuildResource,
                       VersionResource, FileResource)
@@ -66,7 +67,16 @@ urlpatterns = patterns(
     url(r'^projects/', include('projects.urls.public')),
     url(r'^builds/', include('builds.urls')),
     url(r'^flagging/', include('basic.flagging.urls')),
-    url(r'^accounts/', include('registration.backends.default.urls')),
+    # Keep the Django-Registration activation routes during migration
+    url(r'^accounts/activate/(?P<activation_key>\w+)/$',
+        registration.views.activate,
+        {'backend': 'registration.backends.default.DefaultBackend'},
+        name='registration_activate'),
+    url(r'^accounts/activate/complete/$',
+        direct_to_template,
+        {'template': 'registration/activation_complete.html'},
+        name='registration_activation_complete'),
+    url(r'^accounts/', include('allauth.urls')),
     url(r'^search/project/', SearchView.as_view(), name='haystack_project'),
     url(r'^search/', include('haystack.urls')),
     url(r'^admin/', include(admin.site.urls)),

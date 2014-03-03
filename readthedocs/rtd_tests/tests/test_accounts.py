@@ -18,7 +18,7 @@ class AccountRegistrationTests(TestCase):
 
     def register(self):
         """POSTs to the registration URL."""
-        return self.client.post('/accounts/register/', {
+        return self.client.post('/accounts/signup/', {
             'username': self.username,
             'email': self.email,
             'password1': self.password,
@@ -35,7 +35,6 @@ class AccountRegistrationTests(TestCase):
 
         self.assertEqual(user.username, self.username)
         self.assertEqual(user.email, self.email)
-        self.assertFalse(user.is_active)
 
     def test_sends_activation_email(self):
         """
@@ -47,7 +46,7 @@ class AccountRegistrationTests(TestCase):
 
         message = mail.outbox[0]
         self.assertIn(self.email, message.to)
-        self.assertIn('activate', message.subject.lower())
+        self.assertIn('confirm', message.subject.lower())
 
     def test_creates_profile(self):
         """

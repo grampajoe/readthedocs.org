@@ -75,6 +75,9 @@ SECRET_KEY = 'asciidick'
 
 ACCOUNT_ACTIVATION_DAYS = 7
 
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_EMAIL_VERIFICATION = "mandatory"
+
 
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
@@ -114,6 +117,12 @@ TEMPLATE_CONTEXT_PROCESSORS = (
     "django.core.context_processors.media",
     "django.core.context_processors.request",
     "core.context_processors.readthedocs_processor",
+    "allauth.account.context_processors.account",
+)
+
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    "allauth.account.auth_backends.AuthenticationBackend",
 )
 
 INSTALLED_APPS = [
@@ -138,6 +147,8 @@ INSTALLED_APPS = [
     'django_nose',
     'rest_framework',
     'corsheaders',
+    'allauth',
+    'allauth.account',
 
     # Celery bits
     'djcelery',
