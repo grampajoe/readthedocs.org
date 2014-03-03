@@ -6,6 +6,8 @@ from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from registration.models import RegistrationProfile
 
+from core.models import UserProfile
+
 
 class AccountRegistrationTests(TestCase):
 
@@ -46,6 +48,18 @@ class AccountRegistrationTests(TestCase):
         message = mail.outbox[0]
         self.assertIn(self.email, message.to)
         self.assertIn('activate', message.subject.lower())
+
+    def test_creates_profile(self):
+        """
+        Test that a profile is created.
+        """
+        self.register()
+
+        user = User.objects.get(username=self.username)
+        profile = user.profile.get()
+
+        self.assertIsNotNone(profile)
+        self.assertIsInstance(profile, UserProfile)
 
 
 class AccountMigrationTests(TestCase):
