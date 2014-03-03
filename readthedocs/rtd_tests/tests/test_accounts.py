@@ -2,6 +2,7 @@ from django.core import mail
 from django.core.urlresolvers import reverse
 from django.test import TestCase
 
+from allauth.account.models import EmailConfirmation
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from registration.models import RegistrationProfile
@@ -23,7 +24,18 @@ class AccountRegistrationTests(TestCase):
             'email': self.email,
             'password1': self.password,
             'password2': self.password,
-        })
+        }, follow=True)
+
+    def confirm_email_and_logout(self):
+        """Confirms the user's email and logs out."""
+        user = User.objects.get(username=self.username)
+        confirmation = EmailConfirmation.objects.get(email_address__user=user)
+
+        self.client.post(
+            reverse('account_confirm_email', kwargs={'key': confirmation.key}),
+        )
+
+        self.client.logout()
 
     def test_register_account(self):
         """
@@ -59,6 +71,37 @@ class AccountRegistrationTests(TestCase):
 
         self.assertIsNotNone(profile)
         self.assertIsInstance(profile, UserProfile)
+
+    def test_register_page_text(self):
+        """
+        Ensure the signup page hasn't changed much.
+        """
+        response = self.client.get('/accounts/signup/')
+
+        self.assertIn('Register for an account', response.content)
+
+    def test_can_log_in(self):
+        """
+        Test logging in!
+        """
+        self.register()
+
+        self.confirm_email_and_logout()
+
+        # Get the login page
+        response = self.client.get('/accounts/login/', follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(response.context['request'].user.is_authenticated())
+
+        # Submit the login form
+        response = self.client.post('/accounts/login/', {
+            'login': self.username,
+            'password': self.password,
+        }, follow=True)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['request'].user.is_authenticated())
 
 
 class AccountMigrationTests(TestCase):
